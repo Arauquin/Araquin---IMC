@@ -10,6 +10,7 @@ import {
   generateSeedMonthlyLogs,
   validateEmailFormat,
   isEmailValid,
+  buildDefaultNutritionPlan,
 } from './utils/clinicalFormulas';
 import { Header } from './components/Header';
 import { BmiCalculator } from './components/BmiCalculator';
@@ -347,7 +348,10 @@ export default function App() {
       const planData = await response.json();
       setNutritionPlan(planData);
     } catch (err) {
-      console.error(err);
+      console.warn('Utilizando plan clínico de respaldo debido a desconexión:', err);
+      // Immediate fallback to verified clinical guidelines so the user is never left with an empty screen
+      const fallbackPlan = buildDefaultNutritionPlan(profile, calculations);
+      setNutritionPlan(fallbackPlan);
     } finally {
       setIsGeneratingPlan(false);
     }

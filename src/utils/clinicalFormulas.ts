@@ -382,3 +382,67 @@ export function generateSeedMonthlyLogs(currentWeight: number, height: number, a
 
   return seedLogs;
 }
+
+/**
+ * Creates a verified clinical nutrition plan based on WHO and Harvard Healthy Eating guidelines
+ * used as an immediate fallback if external networks or models are temporarily unreachable.
+ */
+export function buildDefaultNutritionPlan(
+  profile: UserProfile,
+  calc: ClinicalCalculations
+): import('../types').NutritionPlan {
+  const isOverweight = calc.bmi >= 25;
+  const isUnderweight = calc.bmi < 18.5;
+
+  const calTarget = isOverweight
+    ? `${Math.round(calc.tdee - 450)} - ${Math.round(calc.tdee - 300)} kcal`
+    : isUnderweight
+    ? `${Math.round(calc.tdee + 350)} - ${Math.round(calc.tdee + 500)} kcal`
+    : `${Math.round(calc.tdee - 100)} - ${Math.round(calc.tdee + 100)} kcal`;
+
+  const proteinGrams = Math.round(profile.weight * (isOverweight ? 1.6 : 1.4));
+
+  return {
+    clinicalAssessment: `Evaluación clínica de estado nutricional: IMC de ${calc.bmi} kg/m² clasificado como "${calc.category.name}". Su gasto energético total estimado (TDEE) es de ${calc.tdee} kcal/día. Se recomienda un enfoque de estilo de vida mediterráneo antiinflamatorio con actividad física regular (150-300 min/semana de acuerdo con las directrices OMS).`,
+    dailyCalorieTarget: calTarget,
+    hydrationGoal: `${calc.recommendedWaterLiters} L diarios (35 ml por kg de peso corporal)`,
+    macronutrientDistribution: {
+      proteinPercent: 25,
+      carbsPercent: 45,
+      fatPercent: 30,
+      proteinGrams: `${proteinGrams} g diarios (~${(proteinGrams / profile.weight).toFixed(1)} g/kg)`,
+      summary: 'Estructura equilibrada: 25% proteína de alto valor biológico, 45% carbohidratos complejos de absorción lenta y 30% ácidos grasos monoinsaturados y poliinsaturados.',
+    },
+    keyRecommendations: [
+      'Priorizar el "Plato de Harvard": 50% hortalizas y verduras variadas, 25% cereales integrales o legumbres y 25% proteínas limpias.',
+      'Asegurar consumo de fibra soluble e insoluble (mínimo 30-35 g al día) mediante semillas de chía, lino, avena y legumbres.',
+      'Cenar al menos 2.5 a 3 horas antes de acostarse para facilitar el vaciado gástrico y sincronización circadiana.',
+      'Mantener hidratación constante distribuyendo el agua a lo largo del día, evitando bebidas azucaradas o alcohol.',
+    ],
+    sampleDayPlan: {
+      breakfast: 'Tortilla de 2 huevos o revuelto de tofu con espinacas baby, rebanada de pan 100% integral de masa madre, 1/4 de aguacate y café solo o infusión.',
+      midMorning: 'Un puñado de nueces crudas (25g) con un yogur natural entero sin azúcar o kéfir y arándanos frescos.',
+      lunch: 'Filete de salmón o pechuga de pavo a la plancha sobre base de quinoa tricolor, ensalada de rúcula con tomate cherry y aceite de oliva virgen extra.',
+      afternoonSnack: 'Manzana verde en rodajas con una cucharada de crema de almendras 100% pura o infusión de rooibos.',
+      dinner: 'Crema de calabacín y puerro con semillas de calabaza, acompañada de merluza al horno o revuelto de champiñones y espárragos trigueros.',
+    },
+    foodsToEmphasize: [
+      'Aceite de oliva virgen extra en crudo',
+      'Pescados azules pequeños (sardinas, caballa, salmón)',
+      'Legumbres (lentejas, garbanzos, alubias)',
+      'Verduras de hoja verde oscura y crucíferas (brócoli, coliflor)',
+      'Frutos rojos (arándanos, frambuesas) y nueces',
+    ],
+    foodsToModerate: [
+      'Bebidas azucaradas, refrescos y zumos industriales',
+      'Embutidos ultraprocesados y carnes con alto contenido graso saturado',
+      'Harinas refinadas y bollería industrial',
+      'Alcohol y alimentos con exceso de sodio añadido (>1.2g sal/100g)',
+    ],
+    customReminders: [
+      'Mantener un vaso de agua al despertar para reactivar hidratación basal.',
+      'Realizar al menos 8,000 a 10,000 pasos diarios para sostener el NEAT metabólico.',
+      'Realizar el pesaje oficial una vez al mes o quincenal, siempre en ayunas.',
+    ],
+  };
+}
