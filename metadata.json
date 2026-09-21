@@ -1,0 +1,8 @@
+{
+  "name": "Remix Calculadora IMC Clínico \u0026 Nutrición IA",
+  "description": "Calculadora de IMC con escalas oficiales de la OMS, ajustes por sexo y edad, gráficas de progreso mensual, recomendaciones nutricionales con IA y recordatorios de salud personalizados.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
